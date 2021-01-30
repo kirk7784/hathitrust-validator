@@ -1,0 +1,2 @@
+@py exiftool.py %*
+@pause

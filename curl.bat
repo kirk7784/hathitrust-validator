@@ -1,0 +1,2 @@
+@py curl.py %*
+@pause

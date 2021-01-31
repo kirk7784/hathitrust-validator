@@ -10,6 +10,8 @@ url = 'https://babel.hathitrust.org/cgi/singleimage_validator' # HathiTrust vali
 imageFilePath = './To_Validate/' # path to where the combined files (.tif and .jp2) exist
 errorLogPath = './errors/' # path to any error results from HathiTrust validator
 skippedPath = './skipped/' # extra files found will be moved here
+failedPath = './Failed/'
+finalPath = './Final/'
 validatedFiles = [] # files that succeeded
 failedFiles = [] # files that failed
 skippedFiles = [] # files that were skipped
@@ -40,14 +42,23 @@ for imageFile in Path(imageFilePath).iterdir(): # iterates on each .tif or jp2 i
             result = requests.post(url, files = {'file': uploads}) # uploads to HathiTrust validator
             
             if 'File validation succeeded!' in result.text: # looks for specific success string
-                    print(f'{imageFile.name} was a success!\n')
-                    validatedFiles.append(imageFile.name) # adds succeeded files to a list
+                print(f'{imageFile.name} was a success!\n')
+                validatedFiles.append(imageFile.name) # adds succeeded files to a list
+                try:
+                    shutil.move(imageFile, finalPath) # move succeeded files to ./Final/
+                except:
+                    PermissionError
             else:                                           # success string not found means validation failed
-                    print(f'{imageFile.name} was a failure...\n')
-                    (Path.cwd() / errorLogPath).mkdir(exist_ok = True) # makes ./errors/ for failed results
-                    with open(f'{errorLogPath}{imageFile.stem}.html', 'w') as errorLog: # saves failed results as html file
-                        errorLog.write(result.text)
-                    failedFiles.append(imageFile.name) # adds failed files to a list
+                print(f'{imageFile.name} was a failure...\n')
+                (Path.cwd() / errorLogPath).mkdir(exist_ok = True) # makes ./errors/ for failed results
+                (Path.cwd() / failedPath).mkdir(exist_ok = True)
+                try:
+                    shutil.move(imageFile, failedPath) # move failed files to ./Failed/
+                except:
+                    PermissionError
+                with open(f'{errorLogPath}{imageFile.stem}.html', 'w') as errorLog: # saves failed results as html file
+                    errorLog.write(result.text)
+                failedFiles.append(imageFile.name) # adds failed files to a list
     else:
         skippedFiles.append(imageFile.name) # adds skipped files to a list
         (Path.cwd() / skippedPath).mkdir(exist_ok = True)
@@ -70,4 +81,8 @@ if Path(errorLogPath).exists(): # prints if there were failures
     print(f'Error(s) found, check {errorLogPath} and remediate.\n')
 else:
     print(f'{barcode} validated, creating zip...\n') # zips ./bitonals/
-    shutil.make_archive(barcode, 'zip', imageFilePath)
+    shutil.make_archive(barcode, 'zip', finalPath)
+
+
+
+

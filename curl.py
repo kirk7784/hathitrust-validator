@@ -48,6 +48,8 @@ for imageFile in Path(imageFilePath).iterdir(): # iterates on each .tif or jp2 i
             if 'File validation succeeded!' in result.text: # looks for specific success string
                 print(f'{imageFile.name} was a success!\n')
                 validatedFiles.append(imageFile.name) # adds succeeded files to a list
+                (Path.cwd() / finalPath).mkdir(exist_ok = True)
+
             else:                                           # success string not found means validation failed
                 print(f'{imageFile.name} was a failure...\n')
                 (Path.cwd() / errorLogPath).mkdir(exist_ok = True) # makes ./errors/ for failed results
@@ -67,7 +69,6 @@ if Path(skippedPath).exists(): # prints if there were skipped files
     print(f'Any extra file(s) were moved to {skippedPath}...\n')
 
 
-
 with open('log.txt', 'a+') as validatedLog: # adds list of successes, failures, and skips to text file
     validatedLog.write(f'Log generated on: {datetime.now()}\n')
     log(validatedFiles, 'Succeeded:') # log()
@@ -77,6 +78,7 @@ with open('log.txt', 'a+') as validatedLog: # adds list of successes, failures, 
     log(skippedFiles, 'Skipped:')
     moveFiles(skippedFiles, imageFilePath, skippedPath)
     validatedLog.write(f'\n{len(validatedFiles)} files succeeded. | {len(failedFiles)} files failed. | {len(skippedFiles)} files skipped.')
+
 
 if Path(errorLogPath).exists(): # prints if there were failures
     print(f'Error(s) found, check {errorLogPath} and remediate.\n')

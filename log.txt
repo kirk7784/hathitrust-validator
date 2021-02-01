@@ -1,7 +1,8 @@
-Log generated on: 2021-01-30 18:45:27.661999
+Log generated on: 2021-02-01 14:31:52.135290
 
 Succeeded:
 00000001.jp2
+00000002.tif
 00000003.tif
 00000004.tif
 00000005.tif
@@ -10,9 +11,11 @@ Succeeded:
 00000008.tif
 
 Failed:
-00000002.tif
-
-Skipped:
 none
 
-7 files succeeded. | 1 files failed. | 0 files skipped.
+Skipped:
+02.txt
+1241.txt
+572.bat
+
+8 files succeeded. | 0 files failed. | 3 files skipped.

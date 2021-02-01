@@ -26,6 +26,10 @@ def log(files, outputString): # log() writes to log.txt and keeps track of what 
     else:
         validatedLog.write('none\n')
 
+def moveFiles(listOfFiles, oldPath, newPath): # moves files from ./To_Validate/ into appropriate folders
+    for file in listOfFiles:
+        shutil.move(oldPath + file, newPath + file)
+
 
 print(f'Validating files in {barcode}\n') # starting validation process
 
@@ -35,7 +39,7 @@ if Path(errorLogPath).exists(): # checks if a previous ./errors/ exists and dele
 Path('./log.txt').unlink(missing_ok = True) # checks if a previous log.txt exists and deletes it
 
 
-for imageFile in Path(imageFilePath).iterdir(): # iterates on each .tif or jp2 in ./bitonals/
+for imageFile in Path(imageFilePath).iterdir(): # iterates on each .tif or jp2 in ./To_Validate/
     if imageFile.is_file() and imageFile.suffix == '.tif' or imageFile.suffix == '.jp2':
         with open(imageFile, 'rb') as uploads:
             print(f'Validating {imageFile.name}...')
@@ -44,10 +48,6 @@ for imageFile in Path(imageFilePath).iterdir(): # iterates on each .tif or jp2 i
             if 'File validation succeeded!' in result.text: # looks for specific success string
                 print(f'{imageFile.name} was a success!\n')
                 validatedFiles.append(imageFile.name) # adds succeeded files to a list
-                try:
-                    shutil.move(imageFile, finalPath) # move succeeded files to ./Final/
-                except:
-                    PermissionError
             else:                                           # success string not found means validation failed
                 print(f'{imageFile.name} was a failure...\n')
                 (Path.cwd() / errorLogPath).mkdir(exist_ok = True) # makes ./errors/ for failed results
@@ -67,22 +67,21 @@ if Path(skippedPath).exists(): # prints if there were skipped files
     print(f'Any extra file(s) were moved to {skippedPath}...\n')
 
 
+
 with open('log.txt', 'a+') as validatedLog: # adds list of successes, failures, and skips to text file
     validatedLog.write(f'Log generated on: {datetime.now()}\n')
     log(validatedFiles, 'Succeeded:') # log()
+    moveFiles(validatedFiles, imageFilePath, finalPath) # moveFiles()
     log(failedFiles, 'Failed:')
+    moveFiles(failedFiles, imageFilePath, failedPath)
     log(skippedFiles, 'Skipped:')
-    for skippedEntry in skippedFiles:
-        shutil.move(imageFilePath + skippedEntry, skippedPath + skippedEntry) # moves skipped files to ./skipped/
+    moveFiles(skippedFiles, imageFilePath, skippedPath)
     validatedLog.write(f'\n{len(validatedFiles)} files succeeded. | {len(failedFiles)} files failed. | {len(skippedFiles)} files skipped.')
-
 
 if Path(errorLogPath).exists(): # prints if there were failures
     print(f'Error(s) found, check {errorLogPath} and remediate.\n')
 else:
-    print(f'{barcode} validated, creating zip...\n') # zips ./bitonals/
+    print(f'{barcode} validated, creating zip...\n') # zips ./To_Validate/
     shutil.make_archive(barcode, 'zip', finalPath)
-
-
 
 
